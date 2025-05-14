@@ -21,11 +21,11 @@ def detect_liquidity_grab(df, lookback=20):
 
         # Above High
         if high > recent_high and is_red(open, close):
-            liquidity_signals.append((df['Date'][i], 'SELL'))
+            liquidity_signals.append((df['Datetime'][i], 'SELL'))
         
         # Below Low
         if low < recent_low and is_green(open, close):
-            liquidity_signals.append((df['Date'][i], 'BUY'))
+            liquidity_signals.append((df['Datetime'][i], 'BUY'))
         
     return liquidity_signals
 
@@ -52,22 +52,22 @@ def candlestick_patterns(df):
             lower_wick > 2 * body and 
             upper_wick < body and
             c1 < o1):  # Previous candle was red (downtrend)
-            candle_signals.append((df['Date'][i], 'BUY - Hammer'))
+            candle_signals.append((df['Datetime'][i], 'BUY - Hammer'))
             
         # Shooting Star (only valid in uptrend)
         if (body < total_range * 0.3 and
             upper_wick > 2 * body and
             lower_wick < body and
             c1 > o1):  # Previous candle was green (uptrend)
-            candle_signals.append((df['Date'][i], 'SELL - Shooting Star'))
+            candle_signals.append((df['Datetime'][i], 'SELL - Shooting Star'))
         
         # Bullish Engulfing
         if is_red(o1, c1) and is_green(o2, c2) and (o2 < c1) and (c2 > o1):
-            candle_signals.append((df['Date'][i], 'BUY - Bullish Engulfing'))
+            candle_signals.append((df['Datetime'][i], 'BUY - Bullish Engulfing'))
             
         # Bearish Engulfing
         if (is_green(o1, c1) and is_red(o2, c2) and (o2 > c1) and (c2 < o1)):
-            candle_signals.append((df['Date'][i], 'SELL - Bearish Engulfing'))
+            candle_signals.append((df['Datetime'][i], 'SELL - Bearish Engulfing'))
             
     return candle_signals
 
@@ -79,7 +79,7 @@ def detect_fvg(df, min_gap=0.001):
         low3 = df.iloc[i]['Low']
         low1 = df.iloc[i - 2]['Low']
         high3 = df.iloc[i]['High']
-        date = df['Date'][i]
+        date = df['Datetime'][i]
 
         # Bullish FVG
         if low3 - high1 >= min_gap:
@@ -112,16 +112,37 @@ def combine(liquidity, candle, fvg):
     return dict(combined)
 
 
-df = pd.read_csv('trading_data.csv')
-df.columns = ['Date', 'Open', 'High', 'Low', 'Close', 'Volume']
-df = df.dropna() 
+df = pd.read_csv('../trading_data.csv')
 
 liquidity = detect_liquidity_grab(df, 10)
 candle = candlestick_patterns(df)
 fvg = detect_fvg(df, 0.01)
 
-combined = combine(liquidity, candle, fvg)
-sorted_combined = dict(sorted(combined.items(), key=lambda x: len(x[1]), reverse=True))
+signals = combine(liquidity, candle, fvg)
 
-with open('signals.json', 'w') as f:
-    json.dump(sorted_combined, f, indent=2)
+# Labels the data and saves it
+def save_dataframe(df, signals):
+    new_df = df.copy(deep=True)
+    new_df['Label'] = 0
+    for row in df.itertuples():
+        index = row.Index
+        date = row.Datetime
+        if date in signals and new_df.loc[index, 'Label'] == 0:
+            sell_count = sum(1 for strategy in signals[date] if 'SELL' in strategy)
+            buy_count = sum(1 for strategy in signals[date] if 'BUY' in strategy)
+
+            if sell_count > buy_count:
+                new_df.loc[index, 'Label'] = -1
+            if sell_count < buy_count:
+                new_df.loc[index, 'Label'] = 1
+
+    new_df = new_df[new_df['Label'] != 0]
+    new_df.to_csv("../labeled_data.csv", index=False)
+
+def save_signals(df, signals):
+    with open('signals.json', 'w') as f:
+        json.dump(signals, f, indent=2)
+
+save_dataframe(df, signals)
+save_signals(df, signals)
+
