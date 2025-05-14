@@ -3,13 +3,13 @@ Date    Open    Close   Volume   Trend   FVG     LiquidityGrabHigh LiquidityGrab
 '''
 import pandas as pd
 
-df = pd.read_csv('trading_data.csv')
+df = pd.read_csv('../../trading_data.csv')
 
-df.drop(index=[0, 1], inplace=True)
-df.reset_index(drop=True, inplace=True)
+# df.drop(index=[0, 1], inplace=True)
+# df.reset_index(drop=True, inplace=True)
 
-for column in df.columns[1:]:
-    df[column] = pd.to_numeric(df[column])
+# for column in df.columns[1:]:
+#     df[column] = pd.to_numeric(df[column])
 
 
 # Trend
@@ -73,9 +73,9 @@ for i in range(len(df) - future_window):
 
 
 # Clean Up
-df.drop('High', axis=1, inplace=True)
-df.drop('Low', axis=1, inplace=True)
-df.drop('Volume', axis=1, inplace=True)
+# df.drop('High', axis=1, inplace=True)
+# df.drop('Low', axis=1, inplace=True)
+# df.drop('Volume', axis=1, inplace=True)
 df.dropna(inplace=True)
 
 df.to_csv('data.csv')
