@@ -1,8 +1,7 @@
-(food PBJ (ingredients Bread PeanutButter Jam))
-(food BLT (ingredients Bread Lettuce Tomato))
-(food Salad (ingredients Lettuce Tomato Cucumber))
-(food EmptyDish (ingredients))
-(food OneItem (ingredients Bread))
+(food PBJ (ingredients Bread PeanutButter Jam) 5m vegan)
+(food BLT (ingredients Bread Lettuce Tomato) 10m vegan)
+(food Salad (ingredients Lettuce Tomato Cucumber) 25m vegetarian)
+(food Bread (ingredients Bread) 1m non-vegan)
 
 (my-ing (Bread PeanutButter Jam Banana Cucumber Avocado Tomato Cheese Lettuce))
 
@@ -28,9 +27,9 @@
 
 
 ; Iterate over all the foods and find matches
-(= (get-foods) (match &self (food $name $ingredients) (
+(= (get-foods) (match &self (food $name $ingredients $cooking-time $diet-type) (
     if (<= (count-ingredients (cdr-atom $ingredients)) (match &self (my-ing $ing) (count-common-ingredients $ing (cdr-atom $ingredients))))
-    ($name)
+    ($name $cooking-time $diet-type)
     ()
 )))
 
