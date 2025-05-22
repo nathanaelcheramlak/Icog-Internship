@@ -48,6 +48,7 @@ def make_output_human_friendly(metta_output, user_request):
     Your task:
     - In the first sentence, list all the recipes the user can make **with their cooking times** (e.g., With the provided ingredients, you can make A (5m), B (10m), and C (15m)).
     - Then, based on their diet preference, recommend the best two recipes from the list.
+    - If the user given recipe matches exactly with a food prioritize it. But else
     - Use the cooking time to prioritize quicker recipes if multiple match the diet.
     - Format your response **exactly** like this:
 
