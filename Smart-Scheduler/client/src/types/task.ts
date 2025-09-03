@@ -2,7 +2,7 @@ export interface Task {
   id: number;
   name: string;
   description: string;
-  priority: 'Low' | 'Medium' | 'High' | 'Critical';
+  priority: 'Low' | 'Medium' | 'High';
   deadline: string;
   dependencies: number[];
   completed: boolean;
@@ -12,7 +12,7 @@ export interface Task {
 export interface TaskFormData {
   name: string;
   description: string;
-  priority: 'Low' | 'Medium' | 'High' | 'Critical';
+  priority: 'Low' | 'Medium' | 'High';
   deadline: string;
   dependencies: number[];
 }

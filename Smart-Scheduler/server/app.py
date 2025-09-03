@@ -214,21 +214,51 @@ def update_task(task_id: int) -> Response:
     tasks = [str(atom) for atom in metta.space().get_atoms()]
     return jsonify({"message": "Task Updated", "tasks": tasks})
 
-@app.route("/reset", methods=["POST"])
-def reset():
-    global TASK_ID
-    metta.space().clear()
-    TASK_ID = 1
-    return jsonify({"message": "System reset"})
 
 @app.route("/schedule", methods=["GET"])
 def schedule_tasks() -> Response:
     metta_space = [str(atom) for atom in metta.space().get_atoms()]
     try:
-        schedule = get_schedule(metta_space)[0][0]
-        return jsonify({"schedule": str(schedule)})
+        s = str(get_schedule(metta_space)[0][0])
+        print("Schedule:", type(s), s)
+        schedule = []
+        for layer in s.split(") ("):
+            print("Layer:", type(layer), layer)
+            layer = layer.strip("()").split()
+            schedule.append([int(task_id) for task_id in layer])
+        return jsonify({"schedule": schedule})
     except Exception as e:
         return jsonify({"error": f"Failed to generate schedule: {str(e)}"}), 500
+
+@app.route("/graph", methods=["GET"])
+def get_graph() -> Response:
+    metta_space = [str(atom) for atom in metta.space().get_atoms()]
+    graph = { "nodes": {}, "edges": [] }
+    for atom in metta_space:
+        if atom.startswith("(Task"):
+            parts = atom.strip("()").split()
+            task_id = int(parts[1])
+            graph["nodes"][task_id] = { 
+                "id": task_id, 
+                "name": parts[3].strip('()').strip('"'),
+                "description": parts[5].strip('()').strip('"')
+            }
+        elif atom.startswith("(DirectedEdge"):
+            parts = atom.strip("()").split()
+            src = int(parts[1])
+            dst = int(parts[2])
+            graph["edges"].append({ "source": src, "target": dst })
+        elif atom.startswith("(Priority"):
+            parts = atom.strip("()").split()
+            task_id = int(parts[1])
+            graph["nodes"][task_id]["priority"] = parts[2]
+        elif atom.startswith("(Deadline"):
+            parts = atom.strip("()").split()
+            task_id = int(parts[1])
+            graph["nodes"][task_id]["deadline"] = parts[2]
+
+    graph["sorted"] = str(get_schedule(metta_space)[0][0])
+    return jsonify({"graph": graph})
 
 if __name__ == "__main__":
     app.run(debug=True)

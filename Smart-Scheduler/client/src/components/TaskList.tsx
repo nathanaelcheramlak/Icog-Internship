@@ -11,7 +11,6 @@ interface TaskListProps {
 const TaskList: React.FC<TaskListProps> = ({ tasks, onToggleComplete, onDelete }) => {
   const getPriorityColor = (priority: string) => {
     switch (priority) {
-      case 'Critical': return 'bg-red-100 text-red-800 border-red-200';
       case 'High': return 'bg-orange-100 text-orange-800 border-orange-200';
       case 'Medium': return 'bg-yellow-100 text-yellow-800 border-yellow-200';
       case 'Low': return 'bg-green-100 text-green-800 border-green-200';
@@ -83,7 +82,7 @@ const TaskList: React.FC<TaskListProps> = ({ tasks, onToggleComplete, onDelete }
                   <h3 className={`text-sm font-medium ${
                     task.completed ? 'text-gray-500 line-through' : 'text-gray-900'
                   }`}>
-                    {task.name}
+                    {task.name.slice(0, -2)}
                   </h3>
                   {task.description && (
                     <p className={`text-sm mt-1 ${
@@ -133,7 +132,7 @@ const TaskList: React.FC<TaskListProps> = ({ tasks, onToggleComplete, onDelete }
                             className={`w-2 h-2 rounded-full ${
                               depTask?.completed ? 'bg-green-400' : 'bg-gray-300'
                             }`}
-                            title={depTask?.name || `Task ${depId}`}
+                            title={depTask?.name.slice(0, -2) || `Task ${depId}`}
                           />
                         );
                       })}

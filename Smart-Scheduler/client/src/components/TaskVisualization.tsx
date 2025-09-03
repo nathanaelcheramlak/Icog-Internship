@@ -64,14 +64,14 @@ const TaskVisualization: React.FC<TaskVisualizationProps> = ({ tasks }) => {
                 <h4 className={`font-medium text-sm ${
                   node.completed ? 'text-green-800' : 'text-gray-900'
                 }`}>
-                  {node.name}
+                  {node.name.slice(0, -2)}
                 </h4>
                 <div className={`w-2 h-2 rounded-full ${
                   node.completed ? 'bg-green-500' : 'bg-gray-400'
                 }`} />
               </div>
               
-              {node.dependencies.length > 0 && (
+              {node.dependencies.length > 0 ? (
                 <div className="text-xs text-gray-600">
                   <span className="font-medium">Depends on:</span>
                   <div className="mt-1 space-y-1">
@@ -83,12 +83,16 @@ const TaskVisualization: React.FC<TaskVisualizationProps> = ({ tasks }) => {
                             depNode?.completed ? 'bg-green-500' : 'bg-gray-400'
                           }`} />
                           <span className={depNode?.completed ? 'line-through text-gray-400' : ''}>
-                            {depNode?.name || `Task ${depId}`}
+                            {depNode?.name.slice(0, -2) || `Task ${depId}`}
                           </span>
                         </div>
                       );
                     })}
                   </div>
+                </div>
+              ) : (
+                <div className="text-xs text-gray-600">
+                  <span className="font-medium">No dependencies</span>
                 </div>
               )}
             </div>
@@ -105,7 +109,7 @@ const TaskVisualization: React.FC<TaskVisualizationProps> = ({ tasks }) => {
         {/* Priority Distribution */}
         <div className="bg-gray-50 rounded-lg p-4">
           <h3 className="text-lg font-medium text-gray-900 mb-4">Priority Distribution</h3>
-          <ResponsiveContainer width="100%" height={200}>
+          <ResponsiveContainer width="100%" height={250}>
             <PieChart>
               <Pie
                 data={priorityData}

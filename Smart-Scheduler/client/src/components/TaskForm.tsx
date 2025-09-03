@@ -93,7 +93,6 @@ const TaskForm: React.FC<TaskFormProps> = ({ onSubmit, onCancel, availableTasks 
             <option value="Low">Low</option>
             <option value="Medium">Medium</option>
             <option value="High">High</option>
-            <option value="Critical">Critical</option>
           </select>
         </div>
 

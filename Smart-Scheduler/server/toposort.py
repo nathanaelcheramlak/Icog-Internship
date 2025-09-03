@@ -218,3 +218,5 @@ if __name__ == "__main__":
             print(f"  - {tasks[tid]['name']} "
                   f"(Priority: {priorities[tid]}, Deadline: {deadlines[tid]})")
 
+a = '(Task 1 (Name "Task-A") (Description "Write Proposal"))'
+print(a.strip("()").split()[3].strip('()').strip('"'))

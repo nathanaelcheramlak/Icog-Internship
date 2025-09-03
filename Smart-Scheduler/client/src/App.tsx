@@ -1,51 +1,80 @@
-import React, { useState, useEffect } from 'react';
-import { Plus, Calendar, Clock, Target, CheckCircle, Circle, AlertTriangle } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Plus, Calendar, Clock, Target, CheckCircle, RefreshCw, PlayCircle, Network } from 'lucide-react';
 import TaskForm from './components/TaskForm';
 import TaskList from './components/TaskList';
 import TaskVisualization from './components/TaskVisualization';
 import TaskRecommendations from './components/TaskRecommendations';
+import GraphPage from './pages/GraphPage';
+import ScheduleDisplay from './components/ScheduleDisplay';
 import type { Task, TaskFormData } from './types/task';
+import { fetchTasks as apiFetchTasks, createTask as apiCreateTask, deleteTask as apiDeleteTask, fetchGraph, fetchSchedule, mapBackendToClient } from './lib/api';
+import type { GraphResponse, ScheduleResponse } from './lib/api';
 
 function App() {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [showForm, setShowForm] = useState(false);
-  const [nextId, setNextId] = useState(1);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [currentPage, setCurrentPage] = useState<'tasks' | 'graph'>('tasks');
+  const [scheduleData, setScheduleData] = useState<{ graph: GraphResponse; schedule: ScheduleResponse } | null>(null);
+  const [showSchedule, setShowSchedule] = useState(false);
 
-  const addTask = (taskData: TaskFormData) => {
-    const newTask: Task = {
-      ...taskData,
-      id: nextId,
-      completed: false,
-      createdAt: new Date(),
-    };
-    setTasks(prev => [...prev, newTask]);
-    setNextId(prev => prev + 1);
-    setShowForm(false);
+  const loadTasks = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const resp = await apiFetchTasks();
+      const mapped = mapBackendToClient(resp) as unknown as Task[];
+      setTasks(mapped);
+    } catch (e: any) {
+      setError(e.message || 'Failed to load tasks');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    // Load once on mount only
+    loadTasks();
+  }, []);
+
+  const addTask = async (taskData: TaskFormData) => {
+    try {
+      setError(null);
+      await apiCreateTask(taskData);
+      setShowForm(false);
+      await loadTasks();
+    } catch (e: any) {
+      setError(e.message || 'Failed to create task');
+    }
   };
 
   const toggleTaskCompletion = (taskId: number) => {
+    // Backend does not track completion; keep client-side only
     setTasks(prev => prev.map(task => 
       task.id === taskId ? { ...task, completed: !task.completed } : task
     ));
   };
 
-  const deleteTask = (taskId: number) => {
-    setTasks(prev => prev.filter(task => task.id !== taskId));
+  const deleteTask = async (taskId: number) => {
+    try {
+      setError(null);
+      await apiDeleteTask(taskId);
+      await loadTasks();
+    } catch (e: any) {
+      setError(e.message || 'Failed to delete task');
+    }
   };
 
   const getNextRecommendedTask = (): Task | null => {
     const incompleteTasks = tasks.filter(task => !task.completed);
     if (incompleteTasks.length === 0) return null;
 
-    // Simple recommendation logic: prioritize by deadline and priority
+    const priorityOrder = {'High': 3, 'Medium': 2, 'Low': 1 } as const;
     return incompleteTasks.sort((a, b) => {
-      const priorityOrder = { 'Critical': 4, 'High': 3, 'Medium': 2, 'Low': 1 };
       const aPriority = priorityOrder[a.priority];
       const bPriority = priorityOrder[b.priority];
-      
       if (aPriority !== bPriority) return bPriority - aPriority;
-      
-      // If same priority, sort by deadline
       return new Date(a.deadline).getTime() - new Date(b.deadline).getTime();
     })[0];
   };
@@ -54,6 +83,34 @@ function App() {
   const pendingTasks = tasks.filter(task => !task.completed);
   const recommendedTask = getNextRecommendedTask();
 
+  const handleGenerateSchedule = async () => {
+    try {
+      setError(null);
+      setLoading(true);
+      
+      // Fetch both graph and schedule data
+      const [graphData, scheduleData] = await Promise.all([
+        fetchGraph(),
+        fetchSchedule()
+      ]);
+      
+      setScheduleData({ graph: graphData, schedule: scheduleData });
+      setShowSchedule(true);
+    } catch (e: any) {
+      setError(e.message || 'Failed to generate schedule');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Render Graph Page
+  if (currentPage === 'graph') {
+    return (
+      <GraphPage onBack={() => setCurrentPage('tasks')} />
+    );
+  }
+
+  // Render Tasks Page
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
       <div className="container mx-auto px-4 py-8">
@@ -65,6 +122,28 @@ function App() {
           <p className="text-lg text-gray-600">
             Intelligent task management with dependency tracking and optimization
           </p>
+          <div className="mt-4 flex items-center justify-center gap-3">
+            <button onClick={loadTasks} className="btn-secondary flex items-center">
+              <RefreshCw className="w-4 h-4 mr-2" /> Refresh
+            </button>
+            <button 
+              onClick={handleGenerateSchedule} 
+              className="btn-primary flex items-center"
+              disabled={loading}
+            >
+              <PlayCircle className={`w-4 h-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
+              {loading ? 'Generating...' : 'Generate Schedule'}
+            </button>
+            <button 
+              onClick={() => setCurrentPage('graph')} 
+              className="btn-secondary flex items-center"
+            >
+              <Network className="w-4 h-4 mr-2" /> View Graph
+            </button>
+          </div>
+          {error && (
+            <div className="mt-3 text-sm text-red-600">{error}</div>
+          )}
         </div>
 
         {/* Stats Cards */}
@@ -138,11 +217,15 @@ function App() {
                   Add Task
                 </button>
               </div>
-              <TaskList
-                tasks={tasks}
-                onToggleComplete={toggleTaskCompletion}
-                onDelete={deleteTask}
-              />
+              {loading ? (
+                <div className="text-gray-500">Loading tasks...</div>
+              ) : (
+                <TaskList
+                  tasks={tasks}
+                  onToggleComplete={toggleTaskCompletion}
+                  onDelete={deleteTask}
+                />
+              )}
             </div>
 
             {/* Task Visualization */}
@@ -169,17 +252,24 @@ function App() {
             <div className="card">
               <h2 className="text-xl font-semibold text-gray-900 mb-6">Quick Actions</h2>
               <div className="space-y-3">
-                <button className="w-full btn-secondary text-left">
-                  <AlertTriangle className="w-4 h-4 inline mr-2" />
-                  View Overdue Tasks
+                <button 
+                  className="w-full btn-secondary text-left" 
+                  onClick={handleGenerateSchedule}
+                  disabled={loading}
+                >
+                  <PlayCircle className="w-4 h-4 inline mr-2" />
+                  Generate Schedule
                 </button>
-                <button className="w-full btn-secondary text-left">
-                  <Calendar className="w-4 h-4 inline mr-2" />
-                  Today's Schedule
+                <button className="w-full btn-secondary text-left" onClick={loadTasks}>
+                  <RefreshCw className="w-4 h-4 inline mr-2" />
+                  Refresh From Server
                 </button>
-                <button className="w-full btn-secondary text-left">
-                  <Target className="w-4 h-4 inline mr-2" />
-                  Priority Queue
+                <button 
+                  className="w-full btn-secondary text-left" 
+                  onClick={() => setCurrentPage('graph')}
+                >
+                  <Network className="w-4 h-4 inline mr-2" />
+                  View Full Graph
                 </button>
               </div>
             </div>
@@ -197,6 +287,16 @@ function App() {
               />
             </div>
           </div>
+        )}
+
+        {/* Schedule Display Modal */}
+        {showSchedule && scheduleData && (
+          <ScheduleDisplay
+            scheduleData={scheduleData.schedule}
+            graphData={scheduleData.graph}
+            tasks={tasks}
+            onClose={() => setShowSchedule(false)}
+          />
         )}
       </div>
     </div>
