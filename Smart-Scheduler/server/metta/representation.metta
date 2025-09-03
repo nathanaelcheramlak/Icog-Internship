@@ -44,3 +44,9 @@
 ;; =============================================================================
 
 (Dependency 1 (2 3)) ;; Task 1 requires completion of Tasks 2 and 3
+
+
+(Indegree 1 2)
+
+;; Makes querying faster and built at runtime
+(DirectedEdge 1 2)
