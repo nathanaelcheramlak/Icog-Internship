@@ -28,36 +28,44 @@
 
 ;; Query Utils
 
+;; Gets name given a task representation
 (= (getName $taskId $space) (
     match $space (Task $taskId (Name $name) (Description $desc)) $name
 ))
 
+;; Gets description given a task representation
 (= (getDescription $taskId $space) (
     match $space (Task $taskId (Name $name) (Description $desc)) $desc
 ))
 
+;; Gets the dependency of a given taskId
 (= (getDependency $taskId $space) (
     match $space (Dependency $taskId $dependency) $dependency
 ))
 
+;; Gets the neighbours of a given taskId
 (= (getNeighbours $taskId $space) (
     collapse (match $space (DirectedEdge $taskId $neighbour) $neighbour)
 ))
 
+;; Given a task it gets the deadline
 (= (getDeadline $taskId $space) (
     match $space (Deadline $taskId $deadline) $deadline
 ))
 
+;; Given a task it gets a the number of indegree's it has
 (= (getIndegree $taskId $space) (
     match $space (Indegree $taskId $val) $val 
 ))
 
+;; Given a taskId it gets the priority
 (= (getPriority $taskId $space) (
     match $space (Priority $taskId $priority) $priority
 ))
 
 ;; Topological Sort Utils
 
+;; Given the current tasks it combines all their unvisited neighbours
 (= (getNeighboursForMultipleTasks $tasks $space $neighbours) (
     if (== $tasks ())
         $neighbours
@@ -68,6 +76,7 @@
         ) (getNeighboursForMultipleTasks $tail $space $newNeighbours))
 ))
 
+;; Given tasks it updates their indegrees
 (= (updateIndegree $taskId $newVal $space) (
     let* (
         ($ind (getIndegree $taskId $space))
@@ -75,18 +84,18 @@
     ) $newVal
 ))
 
+;; Given a specific indegree value it returns tasks with the specified indegree
 (= (findWithIndegree $indVal $space) (
     collapse (let $task (match $space (Indegree $node $indVal) $node) $task)
 ))
 
+;; Given an expression of tasks it filters out tasks with indegree equal zero
 (= (getZeroIndegree $tasks $space) (
     if (== $tasks ())
         ()
         (let* (
-            ; ($_ (println! (Getting zero indegree from tasks: $tasks)))
             (($head $tail) (decons-atom $tasks))
             ($headIndegree (getIndegree $head $space))
-            ; ($_ (println! (Task: $head Indegree: $headIndegree)))
             ($rest (getZeroIndegree $tail $space))
         ) (if (== $headIndegree 0)
             (cons-atom $head $rest)
@@ -94,19 +103,18 @@
         ))
 ))
 
+;; Given tasks it decrements one from all the given tasks
 (= (decrementIndegreeForMultipleTasks $tasks $space) (
     if (== $tasks ())
         ()
         (let* (
             (($taskId $tail) (decons-atom $tasks))
             ($taskIndegree (getIndegree $taskId $space))
-            ; ($_ (println! (Decrementing indegree for task: $taskId from $taskIndegree to (- $taskIndegree 1))))
             ($a (updateIndegree $taskId (- $taskIndegree 1) $space))
-            ; ($ind (getIndegree $taskId $space))
-            ; ($c (println! (Indegree after decrement (Helper): $ind)))
         ) (decrementIndegreeForMultipleTasks $tail $space))
 ))
 
+;; Given tasks it increments one to all the given tasks
 (= (incrementIndegreeForMultiple $tasks $space) (
     if (== $tasks ())
     ()

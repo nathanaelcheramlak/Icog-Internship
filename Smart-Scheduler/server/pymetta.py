@@ -13,17 +13,11 @@ def get_schedule(graph_atoms):
     for atom in graph_atoms:
         parsed_atom = space.parse_single(atom)
         space.space().add_atom(parsed_atom)
-    print("Atoms in input space:", [str(atom) for atom in space.space().get_atoms()])
 
     scheduled_atoms = space.parse_all(schedule_code)
     for atom in scheduled_atoms:
         space.space().add_atom(atom)
 
-    print("Atoms in scheduling space:", [str(atom) for atom in space.space().get_atoms()])
     scheduled_tasks = space.run("!(schedule)")
-    print("Schedule:", scheduled_tasks)
-    return scheduled_tasks
 
-# metta = MeTTa()
-# metta.space().add_atom(metta.parse_single("(Name Nathanael)"))
-# get_schedule(metta)
+    return scheduled_tasks

@@ -2,11 +2,19 @@ from flask import Flask, Response, request, jsonify
 from flask_cors import CORS 
 from hyperon import MeTTa
 
-from utils import has_cycle
+from utils import has_cycle, parse_task_string
 from pymetta import get_schedule
 
 app = Flask(__name__)
 CORS(app)
+
+# Constants
+VALID_PRIORITIES = ['Low', 'Medium', 'High']
+DEADLINE_FORMAT_LENGTH = 8
+
+def create_error_response(message: str, status_code: int = 400) -> Response:
+    """Create a standardized error response."""
+    return jsonify({"error": message}), status_code
 
 metta = MeTTa()
 TASK_ID = 1
@@ -14,6 +22,7 @@ TASK_ID = 1
 # --- Routes ---
 @app.route("/tasks", methods=["POST"])
 def create_task() -> Response:
+    """Create a new task with the provided data."""
     global TASK_ID
     data = request.json
 
@@ -23,10 +32,13 @@ def create_task() -> Response:
     deadline = data.get("deadline")
     dependencies = data.get("dependencies", [])
 
-    # required_fields = ["name", "description", "priority", "deadline"]
-    # missing = [f for f in required_fields if not data.get(f)]
-    # if missing:
-    #     return jsonify({"error": f"Missing fields: {', '.join(missing)}"}), 400
+    # Input validation
+    if not name or not description or not priority or not deadline:
+        return create_error_response("Missing required fields: name, description, priority, deadline")
+    
+    if priority not in VALID_PRIORITIES:
+        return create_error_response(f"Priority must be one of: {', '.join(VALID_PRIORITIES)}")
+    
 
     # Cycle detection
     is_cyclic, cycle_path = has_cycle(metta.space().get_atoms(), TASK_ID, dependencies)
@@ -54,16 +66,17 @@ def create_task() -> Response:
     return jsonify({"message": "Task Added", "tasks": tasks})
 
 @app.route("/tasks", methods=["GET"])
-def get_tasks():
+def get_tasks() -> Response:
+    """Retrieve all tasks from the MeTTa space."""
     task_atoms = [str(atom) for atom in metta.space().get_atoms()]
     tasks = {}
     for atom in task_atoms:
         if atom.startswith("(Task"):
-            parts = atom.strip("()").split()
-            task_id = int(parts[1])
+            result = parse_task_string(atom)
+            task_id = result['task_id']
             tasks[task_id] = {
-                "name": parts[3].strip('"'),
-                "description": parts[5].strip('"'),
+                "name": result['name'],
+                "description": result['description'],
             }
         elif atom.startswith("(Priority"):
             parts = atom.strip("()").split()
@@ -220,10 +233,8 @@ def schedule_tasks() -> Response:
     metta_space = [str(atom) for atom in metta.space().get_atoms()]
     try:
         s = str(get_schedule(metta_space)[0][0])
-        print("Schedule:", type(s), s)
         schedule = []
         for layer in s.split(") ("):
-            print("Layer:", type(layer), layer)
             layer = layer.strip("()").split()
             schedule.append([int(task_id) for task_id in layer])
         return jsonify({"schedule": schedule})
@@ -236,12 +247,12 @@ def get_graph() -> Response:
     graph = { "nodes": {}, "edges": [] }
     for atom in metta_space:
         if atom.startswith("(Task"):
-            parts = atom.strip("()").split()
-            task_id = int(parts[1])
+            result = parse_task_string(atom)
+            task_id = result['task_id']
             graph["nodes"][task_id] = { 
                 "id": task_id, 
-                "name": parts[3].strip('()').strip('"'),
-                "description": parts[5].strip('()').strip('"')
+                "name": result['name'],
+                "description": result['description']
             }
         elif atom.startswith("(DirectedEdge"):
             parts = atom.strip("()").split()

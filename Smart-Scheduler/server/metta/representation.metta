@@ -1,52 +1,96 @@
 ;; =============================================================================
-;; SMART SCHEDULER - TASK REPRESENTATION SCHEMA
+;; SMART TASK SCHEDULER - KNOWLEDGE REPRESENTATION SCHEMA
 ;; =============================================================================
-;; This file defines the core data structures and relationships for task
-;; management in the Smart Scheduler system. The schema is designed for
-;; efficient pattern matching and logical inference.
+;; This file defines the core data structures and relationships for the
+;; Smart Task Scheduler system using MeTTa (Meta Type Theory).
+;; 
+;; The schema is designed for:
+;; - Efficient pattern matching and logical inference
+;; - Clear representation of task dependencies and constraints
+;; - Optimal scheduling algorithm support
 ;; =============================================================================
 
 ;; =============================================================================
-;; TASK ENTITY REPRESENTATION
+;; CORE TASK ENTITY
 ;; =============================================================================
+;; Represents a task with its essential metadata
+;; 
 ;; Format: (Task <task_id> (Name <task_name>) (Description <task_description>))
-;; Purpose: Defines the core task entity with unique identifier and metadata
+;; 
+;; Example:
+;; (Task 1 (Name "Complete Project Report") (Description "Write quarterly report"))
 ;; =============================================================================
 
-(Task 1 (Name "Task-A") (Description "Write Proposal"))
-
 ;; =============================================================================
-;; TASK PRIORITY REPRESENTATION
+;; TASK PRIORITY CLASSIFICATION
 ;; =============================================================================
+;; Assigns priority levels to tasks for scheduling decisions
+;; 
 ;; Format: (Priority <task_id> <priority_level>)
-;; Priority Levels: Low, Medium, High, Critical
-;; Purpose: Assigns priority classification to tasks for scheduling decisions
+;; Priority Levels: Low, Medium, High
+;; 
+;; Example:
+;; (Priority 1 High)
 ;; =============================================================================
 
-(Priority 1 High)
-
 ;; =============================================================================
-;; TASK DEADLINE REPRESENTATION
+;; TASK DEADLINE CONSTRAINT
 ;; =============================================================================
+;; Defines temporal constraints for task completion
+;; 
 ;; Format: (Deadline <task_id> <deadline_date>)
-;; Date Format: YYYYMMDD (serialized for efficient sorting and comparison)
-;; Purpose: Defines temporal constraints for task completion
+;; Date Format: YYYYMMDD (efficient for sorting and comparison)
+;; 
+;; Example:
+;; (Deadline 1 20231202)
 ;; =============================================================================
 
-(Deadline 1 20231202)
+;; =============================================================================
+;; TASK DEPENDENCY RELATIONSHIPS
+;; =============================================================================
+;; Represents directed edges in the task dependency graph
+;; 
+;; Format: (DirectedEdge <source_task_id> <target_task_id>)
+;; Meaning: source_task must be completed before target_task
+;; 
+;; Example:
+;; (DirectedEdge 1 2)  ; Task 1 must be completed before Task 2
+;; =============================================================================
 
 ;; =============================================================================
-;; TASK DEPENDENCY REPRESENTATION
+;; TASK IN-DEGREE TRACKING
 ;; =============================================================================
-;; Format: (Dependency <task_id> (<dependent_task_ids>))
-;; Purpose: Defines prerequisite relationships between tasks
-;; Note: Task with ID <task_id> cannot start until all dependent tasks complete
+;; Tracks the number of dependencies for each task
+;; Used for topological sorting and parallel execution detection
+;; 
+;; Format: (Indegree <task_id> <dependency_count>)
+;; 
+;; Example:
+;; (Indegree 2 1)  ; Task 2 has 1 dependency
 ;; =============================================================================
 
-(Dependency 1 (2 3)) ;; Task 1 requires completion of Tasks 2 and 3
+;; =============================================================================
+;; SAMPLE TASK DATA
+;; =============================================================================
+;; Example task definitions demonstrating the schema usage
+;; =============================================================================
 
+;; Task 1: High priority task with no dependencies
+(Task 1 (Name "Project Planning") (Description "Create project timeline and milestones"))
+(Priority 1 High)
+(Deadline 1 20231201)
+(Indegree 1 0)
 
-(Indegree 1 2)
-
-;; Makes querying faster and built at runtime
+;; Task 2: Medium priority task that depends on Task 1
+(Task 2 (Name "Research Phase") (Description "Conduct market research and analysis"))
+(Priority 2 Medium)
+(Deadline 2 20231205)
+(Indegree 2 1)
 (DirectedEdge 1 2)
+
+;; Task 3: Low priority task that also depends on Task 1
+(Task 3 (Name "Documentation") (Description "Prepare project documentation"))
+(Priority 3 Low)
+(Deadline 3 20231210)
+(Indegree 3 1)
+(DirectedEdge 1 3)

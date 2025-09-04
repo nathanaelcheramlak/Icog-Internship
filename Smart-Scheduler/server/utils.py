@@ -1,3 +1,5 @@
+import re
+
 def has_cycle(current_graph, task_id, dependencies):
     """
     Detect if there is a cycle in the task dependency graph.
@@ -54,3 +56,22 @@ def has_cycle(current_graph, task_id, dependencies):
 # )
 # print("Cycle?", ans)
 # print("Cycle Path:", path)
+
+def parse_task_string(task_string):
+    """
+    Parse a task string in the format: (Task ID (Name "name") (Description "description"))
+    Returns a dictionary with task_id, name, and description
+    """
+    # Pattern to match the task structure
+    pattern = r'\(Task\s+(\d+)\s+\(Name\s+"([^"]+)"\)\s+\(Description\s+"([^"]+)"\)\)'
+    
+    match = re.search(pattern, task_string)
+    
+    if match:
+        return {
+            'task_id': int(match.group(1)),
+            'name': match.group(2),
+            'description': match.group(3)
+        }
+    else:
+        raise ValueError("Invalid task string format")
