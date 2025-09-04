@@ -93,7 +93,7 @@ const TaskRecommendations: React.FC<TaskRecommendationsProps> = ({ recommendedTa
         
         <div className="space-y-3">
           <div>
-            <h4 className="font-medium text-gray-900 mb-1">{recommendedTask.name.slice(0, -2)}</h4>
+            <h4 className="font-medium text-gray-900 mb-1">{recommendedTask.name}</h4>
             {recommendedTask.description && (
               <p className="text-sm text-gray-600">{recommendedTask.description}</p>
             )}

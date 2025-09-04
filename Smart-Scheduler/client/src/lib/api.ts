@@ -1,5 +1,15 @@
 const API_BASE_URL = (import.meta as any).env?.VITE_API_URL || 'http://localhost:5000';
 
+// Error messages
+const ERROR_MESSAGES = {
+  FETCH_TASKS: 'Failed to fetch tasks',
+  CREATE_TASK: 'Failed to create task',
+  UPDATE_TASK: 'Failed to update task',
+  DELETE_TASK: 'Failed to delete task',
+  FETCH_GRAPH: 'Failed to fetch graph',
+  FETCH_SCHEDULE: 'Failed to fetch schedule',
+} as const;
+
 export type BackendTasksResponse = {
   tasks: Record<string, {
     name: string;
@@ -66,7 +76,7 @@ function toYYYY_MM_DD(date: string | undefined): string {
 
 export async function fetchTasks(): Promise<BackendTasksResponse> {
   const res = await fetch(`${API_BASE_URL}/tasks`);
-  if (!res.ok) throw new Error(`Failed to fetch tasks: ${res.status}`);
+  if (!res.ok) throw new Error(`${ERROR_MESSAGES.FETCH_TASKS}: ${res.status}`);
   return res.json();
 }
 
@@ -79,7 +89,7 @@ export async function createTask(payload: Omit<CreateTaskPayload, 'deadline'> & 
   });
   if (!res.ok) {
     const err = await res.json().catch(() => ({}));
-    throw new Error(err.error || `Failed to create task: ${res.status}`);
+    throw new Error(err.error || `${ERROR_MESSAGES.CREATE_TASK}: ${res.status}`);
   }
 }
 

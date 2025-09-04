@@ -82,7 +82,7 @@ const TaskList: React.FC<TaskListProps> = ({ tasks, onToggleComplete, onDelete }
                   <h3 className={`text-sm font-medium ${
                     task.completed ? 'text-gray-500 line-through' : 'text-gray-900'
                   }`}>
-                    {task.name.slice(0, -2)}
+                    {task.name}
                   </h3>
                   {task.description && (
                     <p className={`text-sm mt-1 ${

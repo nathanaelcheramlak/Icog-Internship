@@ -64,7 +64,7 @@ const TaskVisualization: React.FC<TaskVisualizationProps> = ({ tasks }) => {
                 <h4 className={`font-medium text-sm ${
                   node.completed ? 'text-green-800' : 'text-gray-900'
                 }`}>
-                  {node.name.slice(0, -2)}
+                  {node.name}
                 </h4>
                 <div className={`w-2 h-2 rounded-full ${
                   node.completed ? 'bg-green-500' : 'bg-gray-400'
@@ -83,7 +83,7 @@ const TaskVisualization: React.FC<TaskVisualizationProps> = ({ tasks }) => {
                             depNode?.completed ? 'bg-green-500' : 'bg-gray-400'
                           }`} />
                           <span className={depNode?.completed ? 'line-through text-gray-400' : ''}>
-                            {depNode?.name.slice(0, -2) || `Task ${depId}`}
+                            {depNode?.name || `Task ${depId}`}
                           </span>
                         </div>
                       );
