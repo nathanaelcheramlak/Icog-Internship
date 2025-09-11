@@ -2,7 +2,6 @@ from flask import request, jsonify, Blueprint
 from utils.utils import get_user_id_from_token
 from database.utils import get_db_session
 from database.neo4j_connection import Neo4jConnection
-
 movies_bp = Blueprint("movies", __name__)
 
 @movies_bp.route('/', methods=['GET'])
@@ -342,5 +341,99 @@ def search_movies():
         
     except ValueError as e:
         return jsonify({"error": "Invalid page or per_page value"}), 400
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+    
+@movies_bp.route('/rated', methods=['GET'])
+def get_rated_movies():
+    """Get rated movies with parameterized sorting"""
+    try:
+        user_id = get_user_id_from_token()
+        if not user_id:
+            return jsonify({"error": "Authentication required"}), 401
+        
+        page = int(request.args.get('page', 1))
+        per_page = int(request.args.get('per_page', 10))
+        skip = (page - 1) * per_page
+        
+        sort_by = request.args.get('sort_by', 'timestamp')
+        sort_order = request.args.get('sort_order', 'desc')
+        
+        # Safe parameterized query
+        rated_query = """
+        MATCH (u:User {userId: $user_id})-[r:RATED]->(m:Movie)
+        OPTIONAL MATCH (m)-[:HAS_GENRE]->(g:Genre)
+        OPTIONAL MATCH (m)-[hl:HAS_LINK]->()
+        
+        WITH m, r, hl,
+             collect(DISTINCT g.name) AS genres,
+             r.rating AS user_rating,
+             r.timestamp AS rating_timestamp
+        
+        RETURN m.movieId AS movieId,
+               m.title AS title,
+               genres,
+               user_rating,
+               rating_timestamp,
+               hl.imdbId AS imdbId,
+               hl.tmdbId AS tmdbId
+        ORDER BY 
+            CASE $sort_by 
+                WHEN 'rating' THEN user_rating
+                WHEN 'timestamp' THEN rating_timestamp
+                ELSE toLower(m.title)
+            END
+        """ + ("DESC" if sort_order == 'desc' else "ASC") + """
+        SKIP $skip
+        LIMIT $limit
+        """
+
+        count_query = """
+        MATCH (:User {userId: $user_id})-[r:RATED]->(m:Movie)
+        RETURN count(m) AS total_count
+        """
+
+        movies = []
+        total_count = 0
+
+        with get_db_session() as session:
+            count_result = session.run(count_query, {"user_id": user_id})
+            total_record = count_result.single()
+            total_count = total_record["total_count"] if total_record else 0
+            
+            result = session.run(rated_query, {
+                "user_id": user_id,
+                "skip": skip,
+                "limit": per_page,
+                "sort_by": sort_by
+            })
+            
+            for record in result:
+                movies.append({
+                    "movieId": record["movieId"],
+                    "title": record["title"],
+                    "genres": record["genres"],
+                    "userRating": record["user_rating"],
+                    "ratingTimestamp": record["rating_timestamp"],
+                    "imdbId": record["imdbId"],
+                    "tmdbId": record["tmdbId"]
+                })
+        
+        return jsonify({
+            "rated_movies": movies,
+            "pagination": {
+                "page": page,
+                "per_page": per_page,
+                "total": total_count,
+                "total_pages": (total_count + per_page - 1) // per_page if total_count > 0 else 0,
+                "has_next": page * per_page < total_count,
+                "has_prev": page > 1
+            },
+            "sorting": {
+                "sort_by": sort_by,
+                "sort_order": sort_order
+            }
+        })
+        
     except Exception as e:
         return jsonify({"error": str(e)}), 500

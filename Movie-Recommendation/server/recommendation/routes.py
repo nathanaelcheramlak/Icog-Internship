@@ -16,7 +16,7 @@ def get_recommended_movies():
         method = request.args.get('method', 'hybrid')  # collaborative, content_based, popular, hybrid
         limit = int(request.args.get('limit', 10))
         movie_id = request.args.get('movie_id')  # For similarity-based recommendations
-        
+        print("User ID:", user_id, "Method:", method, "Limit:", limit, "Movie ID:", movie_id)
         # Initialize recommendation engine
         engine = RecommendationEngine(user_id=user_id, movie_id=movie_id)
         

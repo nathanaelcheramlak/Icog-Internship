@@ -1,102 +1,159 @@
-import { useState } from "react";
-import {
-	StarIcon,
-	CalendarIcon,
-	ClockIcon,
-	FilmIcon,
-} from "@heroicons/react/24/solid";
+import React, { useState } from 'react';
+import { Link } from 'react-router-dom';
+import { Star, Play, Heart, Eye, Film } from 'lucide-react';
+import { moviesAPI } from '../services/api';
+import toast from 'react-hot-toast';
 
-const MovieCard = ({ movie, onRate }) => {
-	const [userRating, setUserRating] = useState(movie.userRating || 0);
-	const [hoverRating, setHoverRating] = useState(0);
+const MovieCard = ({ movie, showRating = false }) => {
+  const [isRating, setIsRating] = useState(false);
+  const [userRating, setUserRating] = useState(movie.userRating || 0);
+  const [isHovered, setIsHovered] = useState(false);
 
-	const handleRating = (rating) => {
-		setUserRating(rating);
-		if (onRate) {
-			onRate(movie.id, rating);
-		}
-	};
+  const handleRateMovie = async (rating) => {
+    if (isRating) return;
+    
+    setIsRating(true);
+    try {
+      await moviesAPI.rateMovie(movie.movieId, rating);
+      setUserRating(rating);
+      toast.success(`Rated "${movie.title}" ${rating} stars`);
+    } catch (error) {
+      toast.error('Failed to rate movie');
+    } finally {
+      setIsRating(false);
+    }
+  };
 
-	const renderStars = () => {
-		return [1, 2, 3, 4, 5].map((star) => (
-			<button
-				key={star}
-				className="focus:outline-none transition-transform duration-150 hover:scale-110"
-				onClick={() => handleRating(star)}
-				onMouseEnter={() => setHoverRating(star)}
-				onMouseLeave={() => setHoverRating(0)}
-				aria-label={`Rate ${star} stars`}
-			>
-				<StarIcon
-					className={`w-7 h-7 ${
-						star <= (hoverRating || userRating)
-							? "text-yellow-400 fill-current"
-							: "text-gray-300"
-					}`}
-				/>
-			</button>
-		));
-	};
+  const renderStars = (rating, interactive = false, onRate = null) => {
+    return (
+      <div className="flex items-center space-x-1">
+        {[1, 2, 3, 4, 5].map((star) => (
+          <button
+            key={star}
+            onClick={interactive ? () => onRate(star) : undefined}
+            disabled={!interactive || isRating}
+            className={`${
+              interactive 
+                ? 'hover:scale-110 transition-transform cursor-pointer' 
+                : 'cursor-default'
+            } ${
+              isRating ? 'opacity-50 cursor-not-allowed' : ''
+            }`}
+          >
+            <Star
+              className={`h-4 w-4 ${
+                star <= rating
+                  ? 'text-yellow-400 fill-current'
+                  : 'text-gray-300'
+              }`}
+            />
+          </button>
+        ))}
+      </div>
+    );
+  };
 
-	return (
-		<div className="bg-white rounded-2xl overflow-hidden shadow-lg transition-all duration-300 hover:shadow-xl h-full flex flex-col">
-			<div className="relative">
-				<img
-					src={movie.poster}
-					alt={movie.title}
-					className="w-full h-72 object-cover"
-				/>
-				<div className="absolute top-4 right-4 bg-black bg-opacity-70 text-yellow-400 py-1 px-3 rounded-full flex items-center">
-					<StarIcon className="w-5 h-5 mr-1" />
-					<span className="font-bold">{movie.rating.toFixed(1)}</span>
-				</div>
-			</div>
+  const getGenreColor = (genre) => {
+    const colors = {
+      'Action': 'bg-red-100 text-red-800',
+      'Adventure': 'bg-orange-100 text-orange-800',
+      'Animation': 'bg-pink-100 text-pink-800',
+      'Children': 'bg-purple-100 text-purple-800',
+      'Comedy': 'bg-yellow-100 text-yellow-800',
+      'Crime': 'bg-gray-100 text-gray-800',
+      'Documentary': 'bg-green-100 text-green-800',
+      'Drama': 'bg-blue-100 text-blue-800',
+      'Fantasy': 'bg-indigo-100 text-indigo-800',
+      'Horror': 'bg-red-100 text-red-800',
+      'Mystery': 'bg-gray-100 text-gray-800',
+      'Romance': 'bg-pink-100 text-pink-800',
+      'Sci-Fi': 'bg-cyan-100 text-cyan-800',
+      'Thriller': 'bg-purple-100 text-purple-800',
+      'War': 'bg-red-100 text-red-800',
+      'Western': 'bg-yellow-100 text-yellow-800',
+    };
+    return colors[genre] || 'bg-gray-100 text-gray-800';
+  };
 
-			<div className="p-6 flex flex-col flex-grow">
-				<div className="flex justify-between items-start mb-3">
-					<h2 className="text-2xl font-bold text-gray-800">{movie.title}</h2>
-					<span className="text-gray-500 flex items-center">
-						<CalendarIcon className="w-5 h-5 mr-1" />
-						{movie.year}
-					</span>
-				</div>
+  return (
+    <div
+      className="movie-card group"
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+    >
+      <Link to={`/movies/${movie.movieId}`}>
+        {/* Movie Poster Placeholder */}
+        <div className="relative mb-4 aspect-[2/3] bg-gradient-to-br from-primary-100 to-primary-200 rounded-lg overflow-hidden">
+          <div className="absolute inset-0 flex items-center justify-center">
+            <Film className="h-16 w-16 text-primary-400" />
+          </div>
+          
+          {/* Hover Overlay */}
+          <div className={`absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center transition-opacity duration-200 ${
+            isHovered ? 'opacity-100' : 'opacity-0'
+          }`}>
+            <Play className="h-12 w-12 text-white" />
+          </div>
+          
+          {/* Rating Badge */}
+          {movie.userRating && (
+            <div className="absolute top-2 right-2 bg-yellow-400 text-yellow-900 px-2 py-1 rounded-full text-xs font-bold flex items-center">
+              <Star className="h-3 w-3 mr-1" />
+              {movie.userRating}
+            </div>
+          )}
+        </div>
 
-				<div className="flex items-center text-gray-600 mb-4">
-					<ClockIcon className="w-5 h-5 mr-1" />
-					<span className="mr-4">{movie.duration}</span>
-					<FilmIcon className="w-5 h-5 mr-1" />
-					<span>{movie.genre.join(" • ")}</span>
-				</div>
+        {/* Movie Info */}
+        <div className="space-y-2">
+          <h3 className="font-semibold text-gray-900 line-clamp-2 group-hover:text-primary-600 transition-colors">
+            {movie.title}
+          </h3>
+          
+          {/* Genres */}
+          {movie.genres && movie.genres.length > 0 && (
+            <div className="flex flex-wrap gap-1">
+              {movie.genres.slice(0, 2).map((genre) => (
+                <span
+                  key={genre}
+                  className={`px-2 py-1 rounded-full text-xs font-medium ${getGenreColor(genre)}`}
+                >
+                  {genre}
+                </span>
+              ))}
+              {movie.genres.length > 2 && (
+                <span className="px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-600">
+                  +{movie.genres.length - 2}
+                </span>
+              )}
+            </div>
+          )}
 
-				<p className="text-gray-600 mb-6 leading-relaxed flex-grow">
-					{movie.description || "No description available."}
-				</p>
+          {/* User Rating */}
+          {showRating && (
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-gray-600">Your Rating:</span>
+                <span className="text-sm font-medium">
+                  {userRating ? `${userRating}/5` : 'Not rated'}
+                </span>
+              </div>
+              {renderStars(userRating, true, handleRateMovie)}
+            </div>
+          )}
 
-				<div className="flex flex-wrap gap-2 mb-6">
-					{movie.genre.map((genre, index) => (
-						<span
-							key={index}
-							className="bg-blue-100 text-blue-800 text-xs font-medium px-3 py-1 rounded-full"
-						>
-							{genre}
-						</span>
-					))}
-				</div>
-
-				<div className="border-t pt-4 mt-auto">
-					<h3 className="text-lg font-semibold text-gray-800 mb-2">
-						Rate this movie
-					</h3>
-					<div className="flex items-center">
-						<div className="flex mr-4">{renderStars()}</div>
-						<span className="text-gray-700 font-medium">
-							{userRating > 0 ? `${userRating}.0` : "Not rated"}
-						</span>
-					</div>
-				</div>
-			</div>
-		</div>
-	);
+          {/* Quick Actions */}
+          <div className="flex items-center justify-between pt-2">
+            <div className="flex items-center space-x-2 text-sm text-gray-500">
+              <Eye className="h-4 w-4" />
+              <span>View Details</span>
+            </div>
+            <Heart className="h-4 w-4 text-gray-400 hover:text-red-500 transition-colors cursor-pointer" />
+          </div>
+        </div>
+      </Link>
+    </div>
+  );
 };
 
 export default MovieCard;

@@ -7,14 +7,14 @@ def get_context_recommendations(tx, userId, limit=10):
             WITH datetime().epochSeconds AS now
             MATCH (u:User {userId: $userId})-[:RATED]->(m:Movie)
             OPTIONAL MATCH genre_path = (m)-[:HAS_GENRE]->(g:Genre)
-            OPTIONAL MATCH tag_path = (u)-[t:TAGGED]->(m)
+            OPTIONAL MATCH tag_path = (u)-[t:HAS_TAG]->(m)
             WITH u, COLLECT(DISTINCT g.name) AS userGenres, COLLECT(DISTINCT t.tag) AS userTags, 
                  COLLECT(DISTINCT genre_path)[0..3] AS genre_paths, 
                  COLLECT(DISTINCT tag_path)[0..3] AS tag_paths, now
             MATCH (candidate:Movie)
             WHERE NOT (u)-[:RATED]->(candidate) AND EXISTS((candidate)-[:HAS_GENRE]->(:Genre))
             OPTIONAL MATCH candidate_genre_path = (candidate)-[:HAS_GENRE]->(cg:Genre)
-            OPTIONAL MATCH tag_rel_path = (other:User)-[tagRel:TAGGED]->(candidate)
+            OPTIONAL MATCH tag_rel_path = (other:User)-[tagRel:HAS_TAG]->(candidate)
             WITH u, candidate, 
                  COLLECT(DISTINCT cg.name) AS candidateGenres, 
                  COLLECT(DISTINCT tagRel.tag) AS candidateTags,
