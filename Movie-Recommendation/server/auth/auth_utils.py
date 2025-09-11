@@ -1,8 +1,8 @@
 import bcrypt
 import jwt
 import datetime
-import uuid
-from config import JWT_SECRET
+
+JWT_SECRET="your_jwt_secret_key"
 
 def hash_password(password: str) -> str:
     return bcrypt.hashpw(password.encode(), bcrypt.gensalt()).decode()
@@ -26,9 +26,9 @@ def decode_token(token: str):
     except jwt.InvalidTokenError:
         return None
 
-
-def generate_uuid():
+def generate_unique_id():
     """
-    Generate UUID 
+    Generates a random number between 10,000 and 99,999.
     """
-    return str(uuid.uuid4())  
+    import random
+    return random.randint(10000, 99999)

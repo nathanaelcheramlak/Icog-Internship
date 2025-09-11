@@ -1,5 +1,5 @@
 from flask import request
-from auth.utils import decode_token
+from auth.auth_utils import decode_token
 
 def get_user_id_from_token():
     """Extract user ID from JWT token"""

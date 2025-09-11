@@ -1,6 +1,7 @@
 from flask import Blueprint, request, jsonify
 from database.sqlite import get_connection, init_db
-from .utils import hash_password, check_password, generate_token, generate_uuid
+from .auth_utils import hash_password, check_password, generate_token, generate_unique_id
+from .models import create_neo4j_user
 
 auth_bp = Blueprint("auth", __name__)
 
@@ -17,16 +18,18 @@ def signup():
         return jsonify({"error": "Username and password required"}), 400
 
     hashed = hash_password(password)
-    user_uuid = generate_uuid()
+    user_uuid = generate_unique_id()
 
     try:
+        create_neo4j_user(user_uuid)
+        print(f"Creating Neo4j user with UUID: {user_uuid}")
         conn = get_connection()
         cursor = conn.cursor()
         cursor.execute("INSERT INTO users (uuid, username, password) VALUES (?, ?, ?)", (user_uuid, username, hashed))
         conn.commit()
         user_id = cursor.lastrowid
         conn.close()
-        token = generate_token(user_id)
+        token = generate_token(user_uuid)
         return jsonify({"message": "User created", "token": token, "user": {"id": user_uuid, "username": username}})
     except Exception as e:
         return jsonify({"error": str(e)}), 400
@@ -58,7 +61,7 @@ def login():
             return jsonify({"error": "Invalid credentials"}), 401
 
         # Generate token and return response
-        token = generate_token(user["id"])
+        token = generate_token(user["uuid"])
         return jsonify({
             "message": "Login successful", 
             "token": token, 
