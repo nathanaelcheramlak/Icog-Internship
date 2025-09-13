@@ -1,242 +1,99 @@
 # Movie Recommendation System
 
-A comprehensive movie recommendation system with a Flask backend and React frontend, featuring AI-powered recommendations, user authentication, and a modern web interface.
+## Overview
+This project is a full-stack Movie Recommendation System designed to provide personalized movie suggestions to users. It leverages modern web technologies for the frontend and robust Python-based APIs and data processing for the backend. The system supports user authentication, movie browsing, rating, and advanced recommendation algorithms.
 
-## 🎬 Features
+## Features
+- **User Authentication:** Secure signup, login, and profile management.
+- **Movie Search & Browse:** Explore movies, view details, and search by title or genre.
+- **Rating & Reviews:** Users can rate movies and view their rated list.
+- **Personalized Recommendations:** Multiple recommendation engines including collaborative filtering, context-based, and new user suggestions.
+- **Data Management:** Efficient handling and cleaning of movie, ratings, and tags datasets.
+- **Modern UI:** Responsive React frontend with Tailwind CSS for a seamless user experience.
 
-### Backend (Flask)
-- **User Authentication**: JWT-based authentication with secure password hashing
-- **Movie Management**: CRUD operations for movies with Neo4j database
-- **Rating System**: User movie rating functionality
-- **Recommendation Engine**: Multiple recommendation algorithms:
-  - Collaborative Filtering
-  - Content-Based Filtering
-  - Hybrid Approach
-  - Popular Movies
-- **Search & Filtering**: Advanced movie search with genre, year, and rating filters
-- **RESTful API**: Well-documented API endpoints
+## Project Structure
+```
+Movie-Recommendation/
+├── client/           # Frontend (React, Vite, Tailwind)
+│   ├── src/
+│   │   ├── components/   # Reusable UI components
+│   │   ├── pages/        # App pages (Home, Login, Profile, etc.)
+│   │   ├── contexts/     # React Contexts (e.g., Auth)
+│   │   ├── services/     # API service layer
+│   │   └── utils/        # Utility functions
+│   └── ...
+├── server/           # Backend (Python, FastAPI/Flask, Neo4j, SQLite)
+│   ├── auth/         # Authentication logic
+│   ├── data/         # Raw and cleaned datasets
+│   ├── database/     # Database connectors and utilities
+│   ├── movies/       # Movie routes and logic
+│   ├── recommendation/ # Recommendation engines
+│   ├── utils/        # Shared utilities
+│   └── app.py        # Main backend entry point
+└── README.md         # Project documentation
+```
 
-### Frontend (React)
-- **Modern UI**: Built with React 18, Vite, and Tailwind CSS
-- **Responsive Design**: Mobile-first responsive design
-- **User Authentication**: Login and signup forms
-- **Movie Browsing**: Advanced filtering and search functionality
-- **Movie Details**: Detailed movie pages with rating system
-- **Recommendations**: Interactive recommendation system
-- **User Profile**: Profile management and activity tracking
-
-## 🚀 Quick Start
-
+## Setup Instructions
 ### Prerequisites
-- Python 3.8+
-- Node.js 16+
-- Neo4j Database
-- Git
+- Node.js & pnpm (for frontend)
+- Python 3.10+ (for backend)
+- Neo4j (for graph-based recommendations)
+- SQLite (for relational data)
 
 ### Backend Setup
-
-1. **Clone the repository**
-   ```bash
-   git clone <repository-url>
-   cd Movie-Recommendation
-   ```
-
-2. **Set up Python environment**
-   ```bash
+1. Navigate to the backend folder:
+   ```powershell
    cd server
-   python -m venv venv
-   venv\Scripts\activate  # Windows
-   # or
-   source venv/bin/activate  # Linux/Mac
    ```
-
-3. **Install dependencies**
-   ```bash
+2. Install Python dependencies:
+   ```powershell
    pip install -r requirements.txt
    ```
-
-4. **Set up Neo4j database**
-   - Install Neo4j Desktop or Community Edition
-   - Create a new database
-   - Update connection details in `database/neo4j_connection.py`
-
-5. **Load sample data**
-   ```bash
-   python data/scripts/load_data.py
-   ```
-
-6. **Start the server**
-   ```bash
+3. Configure environment variables in `.env` as needed.
+4. Start the backend server:
+   ```powershell
    python app.py
    ```
 
-The backend will be available at `http://localhost:5000`
-
 ### Frontend Setup
-
-1. **Navigate to client directory**
-   ```bash
+1. Navigate to the client folder:
+   ```powershell
    cd client
    ```
-
-2. **Install dependencies**
-   ```bash
-   npm install
+2. Install dependencies:
+   ```powershell
+   pnpm install
    ```
-   
-   If you encounter issues, try:
-   ```bash
-   # Windows
-   install.bat
-   
-   # Or manually
-   npm cache clean --force
-   npm install --legacy-peer-deps
+3. Start the development server:
+   ```powershell
+   pnpm run dev
    ```
 
-3. **Start the development server**
-   ```bash
-   npm run dev
-   ```
+## Data Sources
+- [MovieLens Dataset](https://grouplens.org/datasets/movielens/)
+  - `movies.csv`, `ratings.csv`, `tags.csv`, `links.csv`
+- Cleaned versions available in `server/data/clean/`
 
-The frontend will be available at `http://localhost:3000`
+## Recommendation Algorithms
+- **Collaborative Filtering:** Suggests movies based on user similarity.
+- **Context-Based:** Uses user context and preferences.
+- **New User Recommendations:** Handles cold-start problem for new users.
+- **Additional Engines:** Extensible architecture for more algorithms.
 
-## 📁 Project Structure
+## Technologies Used
+- **Frontend:** React, Vite, Tailwind CSS
+- **Backend:** Python, FastAPI/Flask, Neo4j, SQLite
+- **Data:** Pandas, CSV, Graph Databases
 
-```
-Movie-Recommendation/
-├── server/                 # Flask backend
-│   ├── auth/              # Authentication module
-│   ├── movies/            # Movie management
-│   ├── recommendation/    # Recommendation engine
-│   ├── database/          # Database connections
-│   ├── data/              # Data processing scripts
-│   └── utils/             # Utility functions
-├── client/                # React frontend
-│   ├── src/
-│   │   ├── components/    # Reusable components
-│   │   ├── pages/         # Page components
-│   │   ├── contexts/      # React contexts
-│   │   ├── services/      # API services
-│   │   └── utils/         # Utility functions
-│   └── public/            # Static assets
-└── README.md
-```
+## Contributing
+Contributions are welcome! Please fork the repository, create a feature branch, and submit a pull request. For major changes, open an issue first to discuss your ideas.
 
-## 🔧 API Endpoints
-
-### Authentication
-- `POST /auth/login` - User login
-- `POST /auth/signup` - User registration
-
-### Movies
-- `GET /movies` - Get movies with filtering
-- `GET /movies/:id` - Get movie details
-- `GET /movies/search` - Search movies
-- `POST /movies/rate` - Rate a movie
-
-### Recommendations
-- `GET /recommendations` - Get recommendations
-- `GET /recommendations/profile` - Get user profile
-- `GET /recommendations/similarity` - Get movie similarity
-- `GET /recommendations/explain` - Explain recommendations
-
-## 🎨 Frontend Features
-
-### Pages
-- **Home**: Dashboard with featured movies and recommendations
-- **Movies**: Browse and search movies with advanced filtering
-- **Movie Detail**: Detailed movie information with rating
-- **Recommendations**: AI-powered movie recommendations
-- **Profile**: User profile and activity management
-
-### Components
-- **MovieCard**: Reusable movie display component
-- **SearchBox**: Advanced search functionality
-- **Navbar**: Responsive navigation
-- **AuthContext**: Authentication state management
-
-## 🛠️ Technologies Used
-
-### Backend
-- **Flask**: Python web framework
-- **Neo4j**: Graph database for movie relationships
-- **SQLite**: User authentication database
-- **JWT**: JSON Web Tokens for authentication
-- **Pandas**: Data processing
-- **NumPy**: Numerical computations
-
-### Frontend
-- **React 18**: Frontend framework
-- **Vite**: Build tool and dev server
-- **Tailwind CSS**: Utility-first CSS framework
-- **React Router**: Client-side routing
-- **Axios**: HTTP client
-- **Lucide React**: Icon library
-
-## 📊 Recommendation Algorithms
-
-1. **Collaborative Filtering**: Based on similar users' preferences
-2. **Content-Based Filtering**: Based on movie features and genres
-3. **Hybrid Approach**: Combines collaborative and content-based methods
-4. **Popular Movies**: Most popular movies overall
-
-## 🔒 Security Features
-
-- JWT token-based authentication
-- Password hashing with bcrypt
-- CORS configuration
-- Input validation and sanitization
-- Secure API endpoints
-
-## 🚀 Deployment
-
-### Backend Deployment
-1. Set up production database
-2. Configure environment variables
-3. Use a WSGI server like Gunicorn
-4. Set up reverse proxy with Nginx
-
-### Frontend Deployment
-1. Build the production bundle: `npm run build`
-2. Serve static files with a web server
-3. Configure API proxy for production
-
-## 🤝 Contributing
-
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Add tests if applicable
-5. Submit a pull request
-
-## 📝 License
-
+## License
 This project is licensed under the MIT License.
 
-## 🆘 Troubleshooting
-
-### Common Issues
-
-1. **Neo4j Connection Issues**
-   - Ensure Neo4j is running
-   - Check connection credentials
-   - Verify database exists
-
-2. **Frontend Installation Issues**
-   - Clear npm cache: `npm cache clean --force`
-   - Delete `node_modules` and `package-lock.json`
-   - Try `npm install --legacy-peer-deps`
-
-3. **API Connection Issues**
-   - Ensure backend is running on port 5000
-   - Check CORS configuration
-   - Verify API endpoints
-
-## 📞 Support
-
-For support and questions, please open an issue in the repository.
+## Acknowledgements
+- [MovieLens](https://grouplens.org/datasets/movielens/) for the dataset
+- All contributors and open-source libraries used
 
 ---
-
-**Happy Movie Discovery! 🍿**
+For questions or support, please open an issue or contact the maintainer.
