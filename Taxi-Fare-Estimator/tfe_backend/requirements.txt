@@ -1,0 +1,7 @@
+Django
+xgboost
+pandas
+scikit-learn
+joblib
+celery
+redis
