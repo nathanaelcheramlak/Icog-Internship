@@ -6,23 +6,21 @@ from .ml_model import TaxiFareEstimator
 def generate_random_ride():
     """
     Generate one synthetic taxi ride record with random values
-    and save it into the database as a TaxiFare.
+    and save it into the database.
     """
 
     # Random features
-    distance = round(random.uniform(1, 30), 2)          # 1–30 km
-    time = random.randint(0, 23)                        # hour of day
-    day_of_week = random.randint(0, 6)                  # 0=Mon ... 6=Sun
-    passengers = random.randint(1, 4)                   # 1–4 passengers
+    distance = round(random.uniform(1, 30), 2)        
+    time = random.randint(0, 23)                 
+    day_of_week = random.randint(0, 6)                  
+    passengers = random.randint(1, 4)                   
 
-    # Base fare logic
     base_fare = 3.0
     per_km_rate = random.uniform(1.5, 2.5)
 
-    # Time-based surge: evenings + nights
     surge = 5 if (time >= 18 or time <= 6) else 0
 
-    # Weekend multiplier (Saturday=5, Sunday=6)
+    # Weekend multiplier 
     weekend_multiplier = 1.2 if day_of_week in [5, 6] else 1.0
 
     # Final fare
@@ -52,7 +50,7 @@ def predict_fare_from_model(features: dict) -> float:
         # Train and save the model if it doesn't exist
         all_fares = TaxiFare.objects.all().values()
         if not all_fares:
-            # If there's no data, generate some
+            # If there's no data generate 
             for _ in range(100):
                 generate_random_ride()
             all_fares = TaxiFare.objects.all().values()

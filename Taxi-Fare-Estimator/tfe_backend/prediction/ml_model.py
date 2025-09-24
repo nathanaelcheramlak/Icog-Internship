@@ -5,7 +5,6 @@ from sklearn.metrics import mean_absolute_error, mean_squared_error
 from sklearn.preprocessing import StandardScaler
 import joblib
 
-# Constants for model and scaler paths
 SCALER_PATH = 'scaler.joblib'
 MODEL_PATH = 'ml_model.joblib'
 
@@ -22,7 +21,6 @@ class TaxiFareEstimator:
         """
         Clean, prepare, and scale the dataset.
         """
-        # Define features to be used
         features = ['distance', 'time', 'day_of_week', 'passengers']
         X = df[features]
         y = df["fare"]
@@ -41,7 +39,7 @@ class TaxiFareEstimator:
         self.model.fit(X_scaled, y)
         self.is_trained = True
         print("Model trained successfully")
-        self.save_model() # Save after training
+        self.save_model()
 
     def predict(self, ride_features):
         """

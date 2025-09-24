@@ -14,9 +14,8 @@ def retrain_model():
 
     # Fetch new data from the last 24 hours
     new_data = TaxiFare.objects.filter(created_at__gte=time_threshold)
-
+    print("Automatically Retraining Model")
     if new_data.exists():
-        # Convert queryset to DataFrame
         df = pd.DataFrame(list(new_data.values()))
 
         # Instantiate the estimator and retrain

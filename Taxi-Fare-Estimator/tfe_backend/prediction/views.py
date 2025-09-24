@@ -67,7 +67,6 @@ def train_model(request):
     # Fetch all records
     all_fares_qs = TaxiFare.objects.all().values()
     if not all_fares_qs:
-        # If there's no data, generate some synthetic samples
         for _ in range(200):
             generate_random_ride()
         all_fares_qs = TaxiFare.objects.all().values()
@@ -79,7 +78,7 @@ def train_model(request):
     estimator = TaxiFareEstimator()
     estimator.train(df)
 
-    # Optionally compute metrics on the training data
+    # compute metrics on the training data
     try:
         metrics = estimator.evaluate(df)
     except Exception:
@@ -87,7 +86,6 @@ def train_model(request):
 
     response = {"message": "Model trained and saved successfully."}
     if metrics:
-        # Ensure JSON serializable types
         response["metrics"] = {k: float(v) for k, v in metrics.items()}
     response["num_records"] = int(len(df))
 
@@ -95,7 +93,4 @@ def train_model(request):
 
 
 def ui_index(request):
-    """
-    Simple UI to interact with Populate, Train, and Predict endpoints.
-    """
     return render(request, "prediction/index.html")
