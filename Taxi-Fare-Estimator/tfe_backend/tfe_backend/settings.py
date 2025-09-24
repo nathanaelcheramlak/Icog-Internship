@@ -135,6 +135,6 @@ CELERY_TIMEZONE = 'UTC'
 CELERY_BEAT_SCHEDULE = {
     'retrain-model-every-24-hours': {
         'task': 'prediction.tasks.retrain_model',
-        'schedule': 86400.0,  # 24 hours in seconds
+        'schedule': 120.0,  # 24 hours in seconds
     },
 }
