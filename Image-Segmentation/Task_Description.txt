@@ -1,0 +1,94 @@
+Graph-Based Image Segmentation Using Union-Find (FH Algorithm)
+
+The main goal of this assignment is to learn and apply the Union-Find (Disjoint Set Union) data structure in the context of the Felzenszwalb–Huttenlocher (FH) algorithm, a graph-based image segmentation technique. By implementing this algorithm, you will gain hands-on experience in how Union-Find efficiently clusters similar pixels into coherent regions, a foundational concept in many clustering and segmentation tasks.
+
+
+Task Description
+You are required to:
+Implement Image loading and preprocessing for different user input types
+Uploads (preferably real-world, e.g., a map, landscape, or animal)(can access from drive folder).
+Sample images from library
+Url (optional )
+This method has to be dynamic to load images as upload, sample use function parameter. 
+Implement Union-Find with its optimisations: 
+Path Compression
+Union by rank 
+Implement Felzenszwalb-Huttenlocher Segmentation algorithm (using Union-Find) to segment an image.
+From scratch implementation is needed 
+Analyze and visualize how segmentation changes with different parameter settings.
+Include side-by-side plots for original and segmented images for clarity full picture .
+Compare results for different parameters (k, min_size, sigma).
+Compute the number of segments for each setting.
+Show(visualize) Individual segments   
+Explain the algorithm’s internal process — particularly how Union-Find helps in building segments.
+
+
+Prepare a short report or notebook summarizing your implementation, results, and findings.
+
+
+ Allowed and Restricted Tools
+ Allowed
+You are allowed to use the following tools, functions, and modules — but only for basic operations, I/O, and visualization, not for segmentation itself:
+NumPy — for numerical computation, array manipulation, and distance calculation.
+Matplotlib — for displaying and visualizing images and segmentation results.
+Scikit-image (only specific parts) — only for:
+
+
+Reading and writing images (skimage.io)
+Color conversion (skimage.color)
+Optional Gaussian smoothing (skimage.filters.gaussian)
+
+
+OS module — for saving images or managing paths(if necessary).
+
+ Not Allowed
+You must not use any prebuilt segmentation or clustering library. The goal is to implement the Felzenszwalb-Huttenlocher (FH) algorithm from scratch.
+ The following are explicitly not allowed:
+skimage.segmentation.felzenszwalb() or any segmentation function from scikit-image.
+
+
+Any clustering algorithm such as K-means, Mean Shift, or DBSCAN.
+
+
+Any image segmentation library from OpenCV (cv2), SciPy, or scikit-learn.
+
+
+Any built-in or third-party Union-Find / Disjoint Set data structure.
+
+
+You must implement your own find() and union() logic.
+
+
+Deep learning or AI-based segmentation tools, such as PyTorch, TensorFlow, or Ultralytics.
+
+
+Any library that abstracts graph handling, like NetworkX.
+
+
+Any function that returns labels or segmented regions automatically.
+
+
+📤 Submission Requirements
+Each intern must submit (Single colab file) :
+Code Notebook google colab  (.ipynb or .py) containing:
+Implementation
+Visualizations
+Observations
+
+
+Short Summary (Markdown or PDF) explaining:
+Key takeaways
+What was learned about Union-Find and FH segmentation
+Any challenges faced
+
+
+Output Images showing:
+Original image
+Segmentation results (at least 3 parameter settings).
+
+🏁 Evaluation Criteria
+Implementation Accuracy : Correct application of Union-Find & segmentation logic
+Analysis & Understanding : Explanation of FH algorithm and Union-Find integration
+Visualization Quality:  Clear, well-labeled comparison plots
+Parameter Experimentation : Variety of tests and insights drawn
+Presentation & Code Quality: Clean, commented,Modularized, reproducible code
