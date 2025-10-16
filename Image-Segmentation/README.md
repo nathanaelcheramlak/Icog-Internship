@@ -89,7 +89,7 @@ You can combine multiple metrics with custom weights:
 
 Explore example segmentation outputs in the `demo_images/` folder.
 
-**Example:** [Check Out Examples!](/demo_images/segmented/)
+**Example:** [Check Out Examples!](/Image-Segmentation/demo_images/segmented/)
 
 ## 📁 Project Structure
 
