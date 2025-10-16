@@ -45,7 +45,7 @@ def felzenszwalb_segment(
     edges : iterable of (weight, u, v)
         Weighted edges between pixel nodes. Must be sorted by ascending weight.
     num_nodes : int
-        Number of nodes (typically H * W).
+        Number of nodes (H * W).
     k : float
         Scale parameter (larger k => larger regions).
     min_size : int

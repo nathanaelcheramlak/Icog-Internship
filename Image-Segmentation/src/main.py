@@ -25,6 +25,7 @@ def run_segmentation(
     show: bool = True,
     save_path: str | None = None,
     resize_to: tuple[int, int] | None = None,
+    distance_scale: float = 1.0,
 ):
     """
     Load, preprocess, build graph, run FH segmentation, and visualize.
@@ -40,7 +41,7 @@ def run_segmentation(
 
     # Build graph
     print("Building graph...")
-    edges = build_graph(img, metrics=metrics, weights=weights, connectivity=connectivity)
+    edges = build_graph(img, metrics=metrics, weights=weights, connectivity=connectivity, distance_scale=distance_scale)
 
     # Segment
     print(f"Running FH segmentation with k={k}, min_size={min_size}, sigma={sigma}, metrics={metrics}...")
@@ -72,6 +73,7 @@ def run_parameter_experiments(
     uf=None,
     show_grid: bool = True,
     resize_to: tuple[int, int] | None = None,
+    distance_scale: float = 1.0,
 ):
     """
     Runs multiple parameter combinations and visualizes comparisons.
@@ -91,6 +93,7 @@ def run_parameter_experiments(
             uf=uf,
             show=False,
             resize_to=resize_to,
+            distance_scale=distance_scale,
         )
         results.append({
             "k": k,
@@ -119,6 +122,7 @@ def build_cli_parser() -> argparse.ArgumentParser:
     run.add_argument("--connectivity", type=int, choices=[4, 8], default=8)
     run.add_argument("--metrics", nargs="*", default=["color"], help="Metrics like color intensity")
     run.add_argument("--weights", nargs="*", type=float, default=[1.0], help="Weights per metric")
+    run.add_argument("--distance_scale", type=float, default=1.0, help="Multiply edge distances by this factor")
     run.add_argument("--save", default=None, help="Path to save overlay image")
     run.add_argument("--no-show", action="store_true", help="Disable visualization windows")
     run.add_argument("--resize", nargs=2, type=int, metavar=("W", "H"), help="Resize to width height for speed")
@@ -133,6 +137,7 @@ def build_cli_parser() -> argparse.ArgumentParser:
     exp.add_argument("--connectivity", type=int, choices=[4, 8], default=8)
     exp.add_argument("--metrics", nargs="*", default=["color"])
     exp.add_argument("--weights", nargs="*", type=float, default=[1.0])
+    exp.add_argument("--distance_scale", type=float, default=1.0)
     exp.add_argument("--resize", nargs=2, type=int, metavar=("W", "H"))
     return parser
 
@@ -153,6 +158,7 @@ def main():
             show=(not args.no_show),
             save_path=args.save,
             resize_to=tuple(args.resize) if args.resize else None,
+            distance_scale=args.distance_scale,
         )
         print(f"Segments: {n}")
     elif args.command == "grid":
@@ -165,6 +171,7 @@ def main():
             metrics=args.metrics,
             weights=args.weights,
             connectivity=args.connectivity,
+            distance_scale=args.distance_scale,
             resize_to=tuple(args.resize) if args.resize else None,
         )
 

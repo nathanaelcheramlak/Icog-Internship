@@ -3,7 +3,7 @@ from itertools import product
 from typing import List, Sequence
 
 
-def compute_feature_distance(pixel_a: np.ndarray, pixel_b: np.ndarray, metrics: Sequence[str], weights: Sequence[float]) -> float:
+def compute_feature_distance(pixel_a: np.ndarray, pixel_b: np.ndarray, metrics: Sequence[str], weights: Sequence[float], scale: float = 1.0) -> float:
     total_distance = 0.0
     for metric_name, metric_weight in zip(metrics, weights):
         if metric_name == "intensity":
@@ -13,10 +13,11 @@ def compute_feature_distance(pixel_a: np.ndarray, pixel_b: np.ndarray, metrics: 
         else:
             raise ValueError(f"Unknown metric: {metric_name}")
         total_distance += float(metric_weight) * distance_value
-    return total_distance
+
+    return float(scale) * total_distance
 
 
-def build_graph(image: np.ndarray, metrics: Sequence[str] | None = None, weights: Sequence[float] | None = None, connectivity: int = 8) -> np.ndarray:
+def build_graph(image: np.ndarray, metrics: Sequence[str] | None = None, weights: Sequence[float] | None = None, connectivity: int = 8, distance_scale: float = 1.0) -> np.ndarray:
     """
     Build a weighted pixel adjacency graph.
 
@@ -56,9 +57,8 @@ def build_graph(image: np.ndarray, metrics: Sequence[str] | None = None, weights
             nx, ny = x + dx, y + dy
             if 0 <= nx < H and 0 <= ny < W:
                 p1, p2 = image[x, y], image[nx, ny]
-                dist = compute_feature_distance(p1, p2, metrics, weights)
+                dist = compute_feature_distance(p1, p2, metrics, weights, scale=distance_scale)
                 edges.append((dist, node_index(x, y), node_index(nx, ny)))
 
     edges = np.array(sorted(edges, key=lambda e: e[0]), dtype=np.float64)
     return edges
-
