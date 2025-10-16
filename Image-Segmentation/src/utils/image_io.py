@@ -6,7 +6,7 @@ import numpy as np
 from skimage import io, img_as_float
 from skimage.color import rgba2rgb
 from skimage.transform import resize as sk_resize
-
+from scipy.ndimage import gaussian_filter
 
 SourceType = Literal["path", "url", "sample"]
 
@@ -24,14 +24,21 @@ def _ensure_rgb_float(image: np.ndarray) -> np.ndarray:
     return img
 
 
-def load_image(source: SourceType, value: str, resize_to: Optional[tuple[int, int]] = None) -> np.ndarray:
+def load_image(
+    source: SourceType,
+    value: str,
+    resize_to: Optional[tuple[int, int]] = None,
+    sigma: Optional[float] = None,
+) -> np.ndarray:
     """
     Load an image as float RGB from a local path, URL, or sample name.
+    Optionally apply Gaussian blur.
 
     Args:
         source: one of {"path", "url", "sample"}
         value: path on disk, URL string, or sample file under ./images
         resize_to: optional (width, height)
+        sigma: optional Gaussian blur strength (e.g., 0.5–1.0)
     Returns:
         np.ndarray (H, W, 3), float in [0,1]
     """
@@ -42,18 +49,27 @@ def load_image(source: SourceType, value: str, resize_to: Optional[tuple[int, in
     elif source == "url":
         img = io.imread(value)
     elif source == "sample":
-        sample_path = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "images", value)
+        sample_path = os.path.join(
+            os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "demo_images", value
+        )
         if not os.path.exists(sample_path):
             raise FileNotFoundError(f"Sample not found: {sample_path}")
         img = io.imread(sample_path)
     else:
         raise ValueError("source must be one of 'path' | 'url' | 'sample'")
 
+    # Ensure RGB in float
     img = _ensure_rgb_float(img)
+
+    # Resize if needed
     if resize_to is not None:
-        # skimage resize expects (rows, cols)
         w, h = resize_to
         img = sk_resize(img, (h, w), anti_aliasing=True, preserve_range=True)
+
+    # Gaussian Blur
+    # if sigma is not None and sigma > 0:
+    #     img = gaussian_filter(img, sigma=(sigma, sigma, 0))  # blur only spatially
+
     return img
 
 
