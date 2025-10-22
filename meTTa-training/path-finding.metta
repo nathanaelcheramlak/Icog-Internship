@@ -7,26 +7,26 @@
     add-reduct $space (superpose 
         (
             ;; Test Graph
-            (4 (Node A) (Node B))
-            (4 (Node B) (Node A))
+            ; (4 (Node A) (Node B))
+            ; (4 (Node B) (Node A))
 
-            (1 (Node A) (Node C))
-            (1 (Node C) (Node A))
+            ; (1 (Node A) (Node C))
+            ; (1 (Node C) (Node A))
 
-            (5 (Node A) (Node D))
-            (5 (Node D) (Node A))
+            ; (5 (Node A) (Node D))
+            ; (5 (Node D) (Node A))
 
-            (0 (Node B) (Node D))
-            (0 (Node D) (Node B))
+            ; (0 (Node B) (Node D))
+            ; (0 (Node D) (Node B))
 
-            (2 (Node C) (Node D))
-            (2 (Node D) (Node C))
+            ; (2 (Node C) (Node D))
+            ; (2 (Node D) (Node C))
 
             ;; Smaller Test Graph
-            ; (2 (Node A) (Node B))
-            ; (3 (Node B) (Node C))
-            ; (1 (Node A) (Node C))
-            ; (3 (Node C) (Node B))
+            (2 (Node A) (Node B))
+            (3 (Node B) (Node C))
+            (1 (Node A) (Node C))
+            (3 (Node C) (Node B))
         )
     )
 ))
@@ -144,7 +144,7 @@
 ;; find-min: helper for heappop, finds the min from the heap
 (: find-min (-> Expression Expression))
 (= (find-min ()) (-1 Nil Nil))
-(= (find-min $heap) ( ;; helper for heappop, finds the min from the heap
+(= (find-min $heap) ( 
     let* (
         (($head $tail) (decons-atom $heap))
         (($weight $node $path) $head)
@@ -180,7 +180,7 @@
         ($_ (if $node-in-shortest () (add-to-shortest $shortest $start-node $node $path)))
         ($curr-shortest (get-shortest $shortest))
         ($graph-size (get-graph-size $graph))
-        ($_ (println! (Calculated Nodes: (size-atom $curr-shortest)/ $graph-size)))
+        ; ($_ (println! (Calculated Nodes: (size-atom $curr-shortest)/ $graph-size)))
         ($curr-weight (get-weight $graph $node $nei)) ;; Weight between the current node to the neighbour
         ($updated-heap (heappush $graph $new-heap $edge $unseen-nodes))
     )(if (or (== 0 (size-atom $updated-heap)) (== (size-atom $curr-shortest) $graph-size)) ;; This number should be the total number of nodes in the graph
