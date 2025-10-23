@@ -23,10 +23,23 @@
             ; (2 (Node D) (Node C))
 
             ;; Smaller Test Graph
-            (2 (Node A) (Node B))
-            (3 (Node B) (Node C))
-            (1 (Node A) (Node C))
-            (3 (Node C) (Node B))
+            ; (2 (Node A) (Node B))
+            ; (2 (Node B) (Node A))
+            ; (3 (Node B) (Node C))
+            ; (1 (Node A) (Node C))
+            ; (3 (Node C) (Node B))
+
+            ;; Test 3
+            (4 (Node A) (Node B))
+            (2 (Node A) (Node D))
+            (5 (Node A) (Node C))
+            (3 (Node B) (Node E))
+            (1 (Node D) (Node B))
+            (5 (Node D) (Node E))
+            (5 (Node D) (Node F))
+            (3 (Node C) (Node F))
+            (2 (Node E) (Node G))
+            (3 (Node F) (Node G))
         )
     )
 ))
@@ -173,18 +186,25 @@
 (: dijkstra (-> hyperon::space::DynSpace hyperon::space::DynSpace Expression Expression (->)))
 (= (dijkstra $graph $shortest $heap $start-node) (
     let* (
+        ($_ (println! (Heap $heap)))
         (($edge $new-heap) (heappop $heap))
-        (($weight $node $path) $edge)
+        ($_ (println! (Looking at Edge: $edge)))
+        (($cost $node $path) $edge)
         ($node-in-shortest (in-shortest $shortest $node))
+        ($_ (println! (Node in Shortest: $node-in-shortest)))
         ($unseen-nodes (get-unseen-neighbours $graph $shortest $node)) 
         ($_ (if $node-in-shortest () (add-to-shortest $shortest $start-node $node $path)))
         ($curr-shortest (get-shortest $shortest))
         ($graph-size (get-graph-size $graph))
-        ; ($_ (println! (Calculated Nodes: (size-atom $curr-shortest)/ $graph-size)))
         ($curr-weight (get-weight $graph $node $nei)) ;; Weight between the current node to the neighbour
         ($updated-heap (heappush $graph $new-heap $edge $unseen-nodes))
-    )(if (or (== 0 (size-atom $updated-heap)) (== (size-atom $curr-shortest) $graph-size)) ;; This number should be the total number of nodes in the graph
-        ()
+        ($headpSize (size-atom $updated-heap))
+        ($currShort (size-atom $curr-shortest))
+        ($_ (println! (Updated Heap: $updated-heap)))
+        ($_ (println! "**** ---- ****"))
+        ($_ (println! (Calculated Nodes: (size-atom $curr-shortest)/ $graph-size)))
+    )(if (or (== 0 $headpSize) (== $currShort $graph-size)) ;; This number should be the total number of nodes in the graph
+        ($_ (println! "Completed"))
         (dijkstra $graph $shortest $updated-heap $start-node)
     )
 ))
