@@ -12,51 +12,53 @@ from main import cma_es
 # ---------------------------------------------------
 # 1. Load and split data
 # ---------------------------------------------------
-X, y = load_iris(return_X_y=True)
+X, y = load_iris(return_X_y=True)  # X: features (n_samples x n_features), y: labels
 X_train, X_val, y_train, y_val = train_test_split(
-    X, y, test_size=0.3, random_state=42, stratify=y
+    X, y, test_size=0.3, random_state=42, stratify=y  # 70/30 split with stratification
 )
-# print(f"Train samples: {len(X_train)}, Validation samples: {len(X_val)}")
-# print(f"Dimension of features: {X.shape[1]} | Number of classes: {len(np.unique(y))}")
 
-scaler = StandardScaler().fit(X_train)
-X_train = scaler.transform(X_train)
-X_val = scaler.transform(X_val)
+scaler = StandardScaler().fit(X_train)  # feature scaler fit on train set
+X_train = scaler.transform(X_train)  # scaled training features
+X_val = scaler.transform(X_val)  # scaled validation features
 
 # ---------------------------------------------------
 # 2. Train 5 cheap base models
 # ---------------------------------------------------
 models = [
-    LogisticRegression(max_iter=200),
-    RandomForestClassifier(n_estimators=50, random_state=0),
-    GradientBoostingClassifier(n_estimators=50, random_state=0),
-    KNeighborsClassifier(n_neighbors=5),
-    SVC(probability=True, gamma="scale", random_state=0),
+    LogisticRegression(max_iter=200),  # linear classifier
+    RandomForestClassifier(n_estimators=50, random_state=0),  # tree ensemble
+    GradientBoostingClassifier(n_estimators=50, random_state=0),  # boosting ensemble
+    KNeighborsClassifier(n_neighbors=5),  # k-NN classifier
+    SVC(probability=True, gamma="scale", random_state=0),  # RBF SVM with probs
 ]
 
-probs_list = []
+probs_list = []  # list of per-model predicted class probabilities on validation set
 for m in models:
-    m.fit(X_train, y_train)
-    prediction = m.predict_proba(X_val)
-    probs_list.append(prediction)
+    m.fit(X_train, y_train)  # train base model
+    prediction = m.predict_proba(X_val)  # class probabilities (n_val x n_classes)
+    probs_list.append(prediction)  # accumulate
 
-# print(f"Probability List {len(probs_list[0])}: {probs_list}")
 # ---------------------------------------------------
 # 3. Define ensemble and fitness function
 # ---------------------------------------------------
 def ensemble_probs_from_w(probs_list, w):
-    w = np.clip(w, 0.0, 1.0)
-    w_sum = max(w.sum(), 1e-12)
-    weighted = sum(w_i * p_i for w_i, p_i in zip(w, probs_list))
-    return weighted / w_sum
+    """Compute ensemble probabilities given weights w.
+
+    - probs_list: list of arrays (n_val x n_classes) from each model
+    - w: array-like of model weights
+    """
+    w = np.clip(w, 0.0, 1.0)  # clamp weights to [0, 1]
+    w_sum = max(w.sum(), 1e-12)  # avoid division by zero
+    weighted = sum(w_i * p_i for w_i, p_i in zip(w, probs_list))  # weighted sum
+    return weighted / w_sum  # normalized probabilities
 
 def fitness(w):
     # Optimizer may pass Python lists; convert to numpy array for vector ops
-    w = np.asarray(w, dtype=float)
-    probs = ensemble_probs_from_w(probs_list, w)
-    preds = np.argmax(probs, axis=1)
-    acc = accuracy_score(y_val, preds)
-    return 1.0 - acc   # CMA-ES minimizes this
+    w = np.asarray(w, dtype=float)  # candidate weights vector
+    probs = ensemble_probs_from_w(probs_list, w)  # ensemble probabilities
+    preds = np.argmax(probs, axis=1)  # predicted class indices
+    acc = accuracy_score(y_val, preds)  # validation accuracy
+    return 1.0 - acc   # CMA-ES minimizes loss
 
 best_w, best_loss = cma_es(
     fitness_function=fitness,
@@ -65,12 +67,14 @@ best_w, best_loss = cma_es(
     random_seed=42,
 )
 
-final_probs = ensemble_probs_from_w(probs_list, best_w)
-final_preds = np.argmax(final_probs, axis=1)
-final_acc = accuracy_score(y_val, final_preds)
+# Clamp weights for reporting and downstream usage
+best_w = np.clip(np.asarray(best_w, dtype=float), 0.0, 1.0)  # final weights in [0, 1]
+
+final_probs = ensemble_probs_from_w(probs_list, best_w)  # ensemble probabilities with best weights
+final_preds = np.argmax(final_probs, axis=1)  # ensemble predictions
+final_acc = accuracy_score(y_val, final_preds)  # final validation accuracy
 
 print({
-    "best_weights": np.round(best_w, 4).tolist(),
     "validation_accuracy": float(final_acc),
     "loss": float(best_loss),
 })

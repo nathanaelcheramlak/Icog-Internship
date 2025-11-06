@@ -1,4 +1,10 @@
 ;; Compute one column of the delta_mean matrix
+;; Variables:
+;;  $selected-solutions: matrix of selected parents (μ x dim)
+;;  $previous-mean: vector of previous mean (dim)
+;;  $step-size: scalar sigma
+;;  $i: column index (parent index)
+;;  $j: row index (dimension)
 ;; computes normalized deviations of selected parents
 (= (calculate-col $selected-solutions $previous-mean $step-size $i $j) (
     if (== $j 5)
@@ -12,6 +18,11 @@
 ))
 
 ;; captures momentum of evolution path
+;; Variables:
+;;  $selected-solutions: matrix of selected parents (μ x dim)
+;;  $previous-mean: vector m_t
+;;  $step-size: scalar sigma
+;;  $i: current column index
 (= (calculate-delta-mean-helper $selected-solutions $previous-mean $step-size $i) (
     if (== $i (size-atom $selected-solutions))
         ()
@@ -25,6 +36,8 @@
     calculate-delta-mean-helper $selected-solutions $previous-mean $step-size 0
 ))
 
+;; Rank-one outer product pc pc^T
+;; Variables: $vector is a vector, $i row index, $j col index
 (= (rank-one-row $vector $i $j)
     (if (== $j (size-atom $vector))
         ()
@@ -51,6 +64,13 @@
     (rank-one-update-helper $vector 0)
 )
 
+;; Accumulate weighted outer products for rank-μ update
+;; Variables:
+;;  $recombination-weights: weights w
+;;  $delta-mean: normalized deviations y
+;;  $i, $j: indices in covariance matrix
+;;  $k: parent index accumulator
+;;  $num-selected: μ (number of selected parents)
 (= (rankMuUpdater'' $recombination-weights $delta-mean $i $j $k $num-selected) (
     if (== $k $num-selected)
         0
@@ -85,6 +105,16 @@
     rankMuUpdater $recombination-weights $delta-mean 0 $num-selected
 ))
 
+;; Update covariance matrix using rank-1 and rank-μ terms
+;; Variables:
+;;  $learning-rate-rank1: c1
+;;  $learning-rate-rank-mu: cmu
+;;  $rank-mu-update: Σ w_i y_i y_i^T
+;;  $covariance-matrix: current C
+;;  $rank-one-update: pc pc^T
+;;  $hsig-condition: indicator hsig
+;;  $cumulation-time-constant-cov: ccov
+;;  $i, $j: indices
 (= (updateCovHelper' $learning-rate-rank1 $learning-rate-rank-mu $rank-mu-update $covariance-matrix $rank-one-update $hsig-condition $cumulation-time-constant-cov $i $j) (
     if (== $j 5)
         ()

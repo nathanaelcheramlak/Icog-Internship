@@ -1,3 +1,9 @@
+;; Calculate weighted sum down one column of selected solutions
+;; Variables:
+;;  $weights: recombination weights w
+;;  $matrix: selected solutions matrix (μ x dim)
+;;  $rowIdx: current row index (parent index)
+;;  $colIdx: feature (dimension) index
 (= (calculate-col-weight () $matrix $rowIdx $) 0)
 (= (calculate-col-weight $weights $matrix $rowIdx $colIdx) (
     let* (
@@ -8,6 +14,8 @@
     ) (+ $calculated-val $total)
 ))
 
+;; Build mean vector by aggregating weighted columns
+;; Variables: see above; $colIdx is processed from right to left
 (= (update-mean-helper $selected-solutions $recombination-weights $colIdx) (
     if (== $colIdx -1) 
         () 
@@ -17,6 +25,7 @@
         ) (cons-atom $weighted-sum $total))
 ))
 
+;; Public entry: compute new mean vector from selected solutions and weights
 (= (update-mean $selected-solutions $recombination-weights) (
     let* (
         ($colCount (size-atom $recombination-weights))
@@ -25,6 +34,3 @@
         ($new-mean (reverse $reversed-mean ()))
     ) $new-mean
 ))
-
-
-!(update-mean ((1 2 3) (4 5 6)) (0.6 0.4))
